@@ -1,5 +1,10 @@
 #include <cstdio>
+#include <libloaderapi.h>
+#include <minwindef.h>
+#include <string>
 #include <windows.h>
+#include <wincon.h>
+#include <wingdi.h>
 #include <winnt.h>
 
 BOOL WINAPI DllMain (
@@ -9,9 +14,14 @@ BOOL WINAPI DllMain (
 {
   switch ( fdwReason ) {
     case DLL_PROCESS_ATTACH:
-      printf("DLL Library RE Trainer has been loaded!\n");
-      MessageBoxA(NULL, "Dll has been successfully attached!", "RE GoG trainer", MB_OK);
-      break;
+      {
+        if (!AllocConsole()) {
+          MessageBoxA(NULL, "DLL Error", "Failed to allocate a console!", MB_OK);
+        }
+        std::string executeable_title {"ResidentEvil.exe"};
+        HMODULE executeable_module { GetModuleHandleA(executeable_title.c_str()) };
+        printf("DLL has been attached! Module handle: %p\n", executeable_module);
+      }
     case DLL_THREAD_ATTACH:
       break;
     case DLL_THREAD_DETACH:
@@ -21,5 +31,4 @@ BOOL WINAPI DllMain (
   }
   return TRUE;
 }
-
 
