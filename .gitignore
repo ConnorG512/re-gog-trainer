@@ -1,0 +1,3 @@
+build/
+.clangd/
+build_script.sh/
