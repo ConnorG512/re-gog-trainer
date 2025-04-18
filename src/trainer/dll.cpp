@@ -10,6 +10,8 @@
 #include "memory_patcher.h"
 #include "../util/logger.h"
 
+Logger dll_logger { "re-gog-trainer-dll.log" };
+
 BOOL WINAPI DllMain (
     HINSTANCE hinstDLL,
     DWORD fdwReason,
@@ -19,15 +21,16 @@ BOOL WINAPI DllMain (
     case DLL_PROCESS_ATTACH:
       {
         Sleep(1000);
-        Logger dll_log {};
+        MessageBoxA(NULL, "Hello", "Hello", MB_OK);
         
         HMODULE executeable_module { GetModuleHandleA( NULL )};
         if (executeable_module == NULL) 
         {
+          dll_logger.printTextToLogFile("Could not get module handle!", Logger::LogType::LOG_ERROR);
           MessageBoxA(NULL, "DLL Error","Could not get module handle!", MB_OK | MB_ICONERROR);
         }       
                 
-        MemoryPatcher infinite_ammo(executeable_module, 0x0005815D, { 0xfe, 0x0c, 0x41, 0x90 });
+        MemoryPatcher infinite_ammo(executeable_module, 0x0005815D, { 0xfe, 0x0c, 0x41, 0x90 }, &dll_logger);
         infinite_ammo.changeMemoryProtectionStatus();
         infinite_ammo.writeBytesToProcessMemory();
       }

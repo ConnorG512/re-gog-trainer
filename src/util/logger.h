@@ -6,14 +6,16 @@
 
 class Logger {
   private:
-    std::ofstream m_file { "re-trainer.log" };
+    std::string m_log_title { "default.log" };
+    std::ofstream m_log_file { m_log_title };
   public:
     enum class LogType {
       LOG_INFO,
       LOG_ERROR,
     };
-  private:
-    void printTextToTerminal(std::string &log_message, LogType log_type);
+  public:
+    Logger(std::string title);
+    void printTextToLogFile(std::string log_message, LogType log_type);
 };
 
 #endif // !LOGGER_H

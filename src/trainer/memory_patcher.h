@@ -7,7 +7,8 @@
 #include <minwindef.h>
 #include <vector>
 #include <windows.h>
-#include <array>
+
+#include "../util/logger.h"
 
 class MemoryPatcher {
   private:
@@ -16,9 +17,10 @@ class MemoryPatcher {
     uint8_t* m_target_address { nullptr };
     const std::vector<uint8_t> m_patch_bytes { 0x00 };
     DWORD m_old_protection_value { 0 };
+    Logger* m_logger_file { nullptr };
 
   public:
-    MemoryPatcher(const HMODULE p_base_address, const uint32_t function_offset_address, const std::vector<uint8_t>& patch_bytes);
+    MemoryPatcher(const HMODULE p_base_address, const uint32_t function_offset_address, const std::vector<uint8_t>& patch_bytes, Logger* logger_file);
     void changeMemoryProtectionStatus();
     void writeBytesToProcessMemory();
 };

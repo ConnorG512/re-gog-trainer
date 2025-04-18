@@ -6,23 +6,31 @@
 #include <minwinbase.h>
 #include <process.h>
 #include <processthreadsapi.h>
+#include <string>
 #include <windows.h>
 #include <winnt.h>
+
+#include "../util/logger.h"
+
+Logger launcher_log { "re-gog-trainer-launcher.log" };
 
 // Function declarations
 void launchTargetProcess(PROCESS_INFORMATION* process_info);
 LPVOID AllocateMemoryInAddressSpace(PROCESS_INFORMATION* process_info, SIZE_T dll_length);
-void writeToProcessMemory(PROCESS_INFORMATION* process_info, SIZE_T dll_length, LPVOID p_dll_reserved_address);
+void writeToProcessMemory(PROCESS_INFORMATION* process_info, SIZE_T dll_length, LPVOID p_dll_reserved_address, const char* dll_path);
 FARPROC GetProcessAddress();
 HANDLE CreateRemoteThreadInProcess(PROCESS_INFORMATION* process_info, FARPROC load_library_address, LPVOID p_dll_reserved_address);
 
 int main (int argc, char *argv[]) {
-  SIZE_T dll_length = strlen("re-trainer.dll") + 1; // + 1 for null terminator byte
+  launcher_log.printTextToLogFile("Launcher now running!", Logger::LogType::LOG_INFO);
+
+  const char* dll_path = "libre-gog-trainer.dll";
+  SIZE_T dll_length = strlen(dll_path) + 1; // + 1 for null terminator byte
   PROCESS_INFORMATION process_info {};
  
   launchTargetProcess(&process_info);
   LPVOID p_dll_reserved_address = AllocateMemoryInAddressSpace(&process_info, dll_length);
-  writeToProcessMemory(&process_info, dll_length, p_dll_reserved_address);
+  writeToProcessMemory(&process_info, dll_length, p_dll_reserved_address, dll_path);
   FARPROC load_library_address = GetProcessAddress();
   HANDLE process_handle = CreateRemoteThreadInProcess(&process_info, load_library_address, p_dll_reserved_address);
 
@@ -65,15 +73,14 @@ LPVOID AllocateMemoryInAddressSpace(PROCESS_INFORMATION* process_info, SIZE_T dl
       PAGE_EXECUTE_READWRITE);
   if (p_dll_reserved_address == nullptr) 
   {
-    printf("Error! could not get base address: %lu", GetLastError());
+    launcher_log.printTextToLogFile("Could not get base address!", Logger::LogType::LOG_ERROR);
     MessageBoxA(NULL, "Failed to get base address!", "Launcher Error", MB_OK | MB_ICONERROR);
   }
   return p_dll_reserved_address;
 }
 
-void writeToProcessMemory(PROCESS_INFORMATION* process_info, SIZE_T dll_length, LPVOID p_dll_reserved_address)
+void writeToProcessMemory(PROCESS_INFORMATION* process_info, SIZE_T dll_length, LPVOID p_dll_reserved_address, const char* dll_path)
 {
-  const char* dll_path = "libre-trainer.dll";
   if (!WriteProcessMemory(
         process_info -> hProcess, 
         p_dll_reserved_address, 
@@ -81,7 +88,7 @@ void writeToProcessMemory(PROCESS_INFORMATION* process_info, SIZE_T dll_length, 
         dll_length, 
         nullptr)) 
   {
-    printf("Error! could not write dll to memroy: %lu\n", GetLastError());
+    launcher_log.printTextToLogFile("Could not write dll into the target memory!", Logger::LogType::LOG_ERROR);
     MessageBoxA(NULL, "Failed to assign data to dll address!", "Launcher Error", MB_OK | MB_ICONERROR);
   }
 }
@@ -93,7 +100,7 @@ FARPROC GetProcessAddress()
       "LoadLibraryA");
   if (p_load_library_address == nullptr) 
   {
-    printf("Error finding LoadLibraryA address! %lu\n", GetLastError());
+    launcher_log.printTextToLogFile("Could not find LoadLibraryA Address", Logger::LogType::LOG_ERROR);
     MessageBoxA(NULL, "Failed to get LoadLibraryA address!", "Launcher Error", MB_OK | MB_ICONERROR);
   }
   return p_load_library_address;
@@ -110,7 +117,7 @@ HANDLE CreateRemoteThreadInProcess(PROCESS_INFORMATION* process_info, FARPROC lo
       0, 
       nullptr);
   if (remote_thread == NULL) {
-    printf("Error creating remote thread! %lu\n", GetLastError());
+    launcher_log.printTextToLogFile("Could not create remote thread!", Logger::LogType::LOG_ERROR);
     MessageBoxA(NULL, "Failed to create remote thread!", "Launcher Error", MB_OK | MB_ICONERROR);
   }
   return remote_thread;
