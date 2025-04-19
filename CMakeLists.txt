@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 project(RE-GoG-Trainer CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # include toolchain file
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/windows32-toolchain.cmake")

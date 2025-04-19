@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstring>
+#include <errhandlingapi.h>
 #include <sec_api/stdio_s.h>
+#include <string>
 #include <vector>
 #include <windows.h>
 #include <wincon.h>
@@ -21,12 +23,12 @@ BOOL WINAPI DllMain (
     case DLL_PROCESS_ATTACH:
       {
         Sleep(1000);
-        MessageBoxA(NULL, "Hello", "Hello", MB_OK);
-        
+
         HMODULE executeable_module { GetModuleHandleA( NULL )};
         if (executeable_module == NULL) 
         {
           dll_logger.printTextToLogFile("Could not get module handle!", Logger::LogType::LOG_ERROR);
+          dll_logger.printTextToLogFile(std::to_string(GetLastError()), Logger::LogType::LOG_ERROR);
           MessageBoxA(NULL, "DLL Error","Could not get module handle!", MB_OK | MB_ICONERROR);
         }       
                 
